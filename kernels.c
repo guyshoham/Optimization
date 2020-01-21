@@ -255,7 +255,7 @@ void my_smooth(int dim, pixel* src, pixel* dst) {
     tmp2 = src[j - 1];
     tmp3 = src[j + 1];
     tmp4 = src[j - dim];
-    tmp5 = src[j + 1 + dim];
+    tmp5 = src[j + 1 - dim];
     tmp6 = src[j - 1 - dim];
     dst[j].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red + tmp5.red + tmp6.red) / 6;
     dst[j].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green + tmp5.green + tmp6.green) / 6;
@@ -268,7 +268,7 @@ void my_smooth(int dim, pixel* src, pixel* dst) {
     tmp3 = src[j - dim];
     tmp4 = src[j + dim];
     tmp5 = src[j - dim - 1];
-    tmp6 = src[j + dim - 1];
+    tmp6 = src[j - 1 + dim];
     dst[j].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red + tmp5.red + tmp6.red) / 6;
     dst[j].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green + tmp5.green + tmp6.green) / 6;
     dst[j].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue + tmp5.blue + tmp6.blue) / 6;
