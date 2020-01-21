@@ -8,13 +8,13 @@
  * Please fill in the following team struct 
  */
 team_t team = {
-        "GuyTom",              /* Team name */
+    "GuyTom",                /* Team name */
 
-        "Guy Shoham",     /* First member full name */
-        "GuyShoham28@gmail.com",  /* First member email address */
+    "Guy Shoham",            /* First member full name */
+    "GuyShoham28@gmail.com", /* First member email address */
 
-        "Tom Sendrovich",                   /* Second member full name (leave blank if none) */
-        "tsanderovich@gmail.com"                    /* Second member email addr (leave blank if none) */
+    "Tom Sendrovich",        /* Second member full name (leave blank if none) */
+    "tsanderovich@gmail.com" /* Second member email addr (leave blank if none) */
 };
 
 /***************
@@ -30,41 +30,39 @@ team_t team = {
  */
 char naive_rotate_descr[] = "naive_rotate: Naive baseline implementation";
 
-void naive_rotate(int dim, pixel *src, pixel *dst) {
-    int i, j;
+void naive_rotate(int dim, pixel* src, pixel* dst) {
+  int i, j;
 
-    for (i = 0; i < dim; i++)
-        for (j = 0; j < dim; j++)
-            dst[RIDX(dim - 1 - j, i, dim)] = src[RIDX(i, j, dim)];
+  for (i = 0; i < dim; i++)
+    for (j = 0; j < dim; j++)
+      dst[RIDX(dim - 1 - j, i, dim)] = src[RIDX(i, j, dim)];
 }
 
+void my_rotate(int dim, pixel* src, pixel* dst) {
+  int cacheSize = 32, j, i, col, row, inCol, inRow;
 
-void my_rotate(int dim, pixel *src, pixel *dst) {
-    int cacheSize = 32, j, i, col, row, inCol, inRow;
-
-    for (i = 0; i < dim; i = i + cacheSize) {
-        for (j = 0; j < dim; j = j + cacheSize) {
-            inCol = j + cacheSize;
-            //by switching the two loops we get better spatial locality (more cache hits!)
-            for (col = j; col < inCol; col++) {//goes over a box of 32X32 pixels at a time
-                inRow = i + cacheSize;
-                for (row = i; row < inRow; row++) {
-                    dst[RIDX(dim - 1 - col, row, dim)] = src[RIDX(row, col, dim)];
-                }
-            }
+  for (i = 0; i < dim; i = i + cacheSize) {
+    for (j = 0; j < dim; j = j + cacheSize) {
+      inCol = j + cacheSize;
+      //by switching the two loops we get better spatial locality (more cache hits!)
+      for (col = j; col < inCol; col++) {//goes over a box of 32X32 pixels at a time
+        inRow = i + cacheSize;
+        for (row = i; row < inRow; row++) {
+          dst[RIDX(dim - 1 - col, row, dim)] = src[RIDX(row, col, dim)];
         }
+      }
     }
+  }
 }
 
-
-/* 
+/*
  * rotate - Your current working version of rotate
  * IMPORTANT: This is the version you will be graded on
  */
 char my_rotate_descr[] = "rotate: Current working version";
 
-void rotate(int dim, pixel *src, pixel *dst) {
-    my_rotate(dim, src, dst);
+void rotate(int dim, pixel* src, pixel* dst) {
+  my_rotate(dim, src, dst);
 }
 
 /*********************************************************************
@@ -76,9 +74,9 @@ void rotate(int dim, pixel *src, pixel *dst) {
  *********************************************************************/
 
 void register_rotate_functions() {
-    add_rotate_function(&naive_rotate, naive_rotate_descr);
-    add_rotate_function(&rotate, my_rotate_descr);
-    /* ... Register additional test functions here */
+  add_rotate_function(&naive_rotate, naive_rotate_descr);
+  add_rotate_function(&rotate, my_rotate_descr);
+  /* ... Register additional test functions here */
 }
 
 
@@ -93,10 +91,10 @@ void register_rotate_functions() {
 
 /* A struct used to compute averaged pixel value */
 typedef struct {
-    int red;
-    int green;
-    int blue;
-    int num;
+  int red;
+  int green;
+  int blue;
+  int num;
 } pixel_sum;
 
 /* Compute min and max of two integers, respectively */
@@ -107,49 +105,49 @@ static int max(int a, int b) { return (a > b ? a : b); }
 /* 
  * initialize_pixel_sum - Initializes all fields of sum to 0 
  */
-static void initialize_pixel_sum(pixel_sum *sum) {
-    sum->red = sum->green = sum->blue = 0;
-    sum->num = 0;
-    return;
+static void initialize_pixel_sum(pixel_sum* sum) {
+  sum->red = sum->green = sum->blue = 0;
+  sum->num = 0;
+  return;
 }
 
 /* 
  * accumulate_sum - Accumulates field values of p in corresponding 
  * fields of sum 
  */
-static void accumulate_sum(pixel_sum *sum, pixel p) {
-    sum->red += (int) p.red;
-    sum->green += (int) p.green;
-    sum->blue += (int) p.blue;
-    sum->num++;
-    return;
+static void accumulate_sum(pixel_sum* sum, pixel p) {
+  sum->red += (int) p.red;
+  sum->green += (int) p.green;
+  sum->blue += (int) p.blue;
+  sum->num++;
+  return;
 }
 
 /* 
  * assign_sum_to_pixel - Computes averaged pixel value in current_pixel 
  */
-static void assign_sum_to_pixel(pixel *current_pixel, pixel_sum sum) {
-    current_pixel->red = (unsigned short) (sum.red / sum.num);
-    current_pixel->green = (unsigned short) (sum.green / sum.num);
-    current_pixel->blue = (unsigned short) (sum.blue / sum.num);
-    return;
+static void assign_sum_to_pixel(pixel* current_pixel, pixel_sum sum) {
+  current_pixel->red = (unsigned short) (sum.red / sum.num);
+  current_pixel->green = (unsigned short) (sum.green / sum.num);
+  current_pixel->blue = (unsigned short) (sum.blue / sum.num);
+  return;
 }
 
 /* 
  * avg - Returns averaged pixel value at (i,j) 
  */
-static pixel avg(int dim, int i, int j, pixel *src) {
-    int ii, jj;
-    pixel_sum sum;
-    pixel current_pixel;
+static pixel avg(int dim, int i, int j, pixel* src) {
+  int ii, jj;
+  pixel_sum sum;
+  pixel current_pixel;
 
-    initialize_pixel_sum(&sum);
-    for (ii = max(i - 1, 0); ii <= min(i + 1, dim - 1); ii++)
-        for (jj = max(j - 1, 0); jj <= min(j + 1, dim - 1); jj++)
-            accumulate_sum(&sum, src[RIDX(ii, jj, dim)]);
+  initialize_pixel_sum(&sum);
+  for (ii = max(i - 1, 0); ii <= min(i + 1, dim - 1); ii++)
+    for (jj = max(j - 1, 0); jj <= min(j + 1, dim - 1); jj++)
+      accumulate_sum(&sum, src[RIDX(ii, jj, dim)]);
 
-    assign_sum_to_pixel(&current_pixel, sum);
-    return current_pixel;
+  assign_sum_to_pixel(&current_pixel, sum);
+  return current_pixel;
 }
 
 /******************************************************
@@ -161,110 +159,107 @@ static pixel avg(int dim, int i, int j, pixel *src) {
  */
 char naive_smooth_descr[] = "naive_smooth: Naive baseline implementation";
 
-void naive_smooth(int dim, pixel *src, pixel *dst) {
-    int i, j;
+void naive_smooth(int dim, pixel* src, pixel* dst) {
+  int i, j;
 
-    for (i = 0; i < dim; i++)
-        for (j = 0; j < dim; j++)
-            dst[RIDX(i, j, dim)] = avg(dim, i, j, src);
+  for (i = 0; i < dim; i++)
+    for (j = 0; j < dim; j++)
+      dst[RIDX(i, j, dim)] = avg(dim, i, j, src);
 }
 
+void my_smooth(int dim, pixel* src, pixel* dst) {
+  int i, j, k;
 
-void my_smooth(int dim, pixel *src, pixel *dst) {
-    int i, j, k;
+  //handling with the corners
 
-    //handling with the corners
+  //left-up corner
+  dst[0].red = (src[0].red + src[1].red + src[dim].red + src[dim + 1].red) / 4;
+  dst[0].blue = (src[0].blue + src[1].blue + src[dim].blue + src[dim + 1].blue) / 4;
+  dst[0].green = (src[0].green + src[1].green + src[dim].green + src[dim + 1].green) / 4;
 
-    //left-up corner
-    dst[0].red = (src[0].red + src[1].red + src[dim].red + src[dim + 1].red) / 4;
-    dst[0].blue = (src[0].blue + src[1].blue + src[dim].blue + src[dim + 1].blue) / 4;
-    dst[0].green = (src[0].green + src[1].green + src[dim].green + src[dim + 1].green) / 4;
+  //left-down corner
+  i = dim * 2 - 1;
+  dst[dim - 1].red = (src[dim - 2].red + src[dim - 1].red + src[i - 1].red + src[i].red) / 4;
+  dst[dim - 1].blue = (src[dim - 2].blue + src[dim - 1].blue + src[i - 1].blue + src[i].blue) / 4;
+  dst[dim - 1].green = (src[dim - 2].green + src[dim - 1].green + src[i - 1].green + src[i].green) / 4;
 
-    //left-down corner
-    i = dim * 2 - 1;
-    dst[dim - 1].red = (src[dim - 2].red + src[dim - 1].red + src[i - 1].red + src[i].red) / 4;
-    dst[dim - 1].blue = (src[dim - 2].blue + src[dim - 1].blue + src[i - 1].blue + src[i].blue) / 4;
-    dst[dim - 1].green = (src[dim - 2].green + src[dim - 1].green + src[i - 1].green + src[i].green) / 4;
+  //right-up corner
+  j = dim * (dim - 1);
+  i = dim * (dim - 2);
+  dst[j].red = (src[j].red + src[j + 1].red + src[i].red + src[i + 1].red) / 4;
+  dst[j].blue = (src[j].blue + src[j + 1].blue + src[i].blue + src[i + 1].blue) / 4;
+  dst[j].green = (src[j].green + src[j + 1].green + src[i].green + src[i + 1].green) / 4;
 
-    //right-up corner
-    j = dim * (dim - 1);
-    i = dim * (dim - 2);
-    dst[j].red = (src[j].red + src[j + 1].red + src[i].red + src[i + 1].red) / 4;
-    dst[j].blue = (src[j].blue + src[j + 1].blue + src[i].blue + src[i + 1].blue) / 4;
-    dst[j].green = (src[j].green + src[j + 1].green + src[i].green + src[i + 1].green) / 4;
-
-    //right-down corner
-    j = dim * dim - 1;
-    i = dim * (dim - 1) - 1;
-    dst[j].red = (src[j - 1].red + src[j].red + src[i - 1].red + src[i].red) / 4;
-    dst[j].blue = (src[j - 1].blue + src[j].blue + src[i - 1].blue + src[i].blue) / 4;
-    dst[j].green = (src[j - 1].green + src[j].green + src[i - 1].green + src[i].green) / 4;
-
-
-    //handling with the sides
+  //right-down corner
+  j = dim * dim - 1;
+  i = dim * (dim - 1) - 1;
+  dst[j].red = (src[j - 1].red + src[j].red + src[i - 1].red + src[i].red) / 4;
+  dst[j].blue = (src[j - 1].blue + src[j].blue + src[i - 1].blue + src[i].blue) / 4;
+  dst[j].green = (src[j - 1].green + src[j].green + src[i - 1].green + src[i].green) / 4;
 
 
-    i = dim - 1;
-    for (j = 1; j < i; j++) {
-        dst[j].red = (src[j].red + src[j - 1].red + src[j + 1].red + src[j + dim].red + src[j + 1 + dim].red +
-                      src[j - 1 + dim].red) / 6;
-        dst[j].green = (src[j].green + src[j - 1].green + src[j + 1].green + src[j + dim].green + src[j + 1 + dim].green
-                        + src[j - 1 + dim].green) / 6;
-        dst[j].blue = (src[j].blue + src[j - 1].blue + src[j + 1].blue + src[j + dim].blue + src[j + 1 + dim].blue +
-                       src[j - 1 + dim].blue) / 6;
+  //handling with the sides
+
+
+  i = dim - 1;
+  for (j = 1; j < i; j++) {
+    dst[j].red = (src[j].red + src[j - 1].red + src[j + 1].red + src[j + dim].red + src[j + 1 + dim].red +
+        src[j - 1 + dim].red) / 6;
+    dst[j].green = (src[j].green + src[j - 1].green + src[j + 1].green + src[j + dim].green + src[j + 1 + dim].green
+        + src[j - 1 + dim].green) / 6;
+    dst[j].blue = (src[j].blue + src[j - 1].blue + src[j + 1].blue + src[j + dim].blue + src[j + 1 + dim].blue +
+        src[j - 1 + dim].blue) / 6;
+  }
+
+  i = dim * dim - 1;
+  for (j = i - dim + 2; j < i; j++) {
+    dst[j].red = (src[j].red + src[j - 1].red + src[j + 1].red + src[j - dim].red + src[j + 1 - dim].red +
+        src[j - 1 - dim].red) / 6;
+    dst[j].green =
+        (src[j].green + src[j - 1].green + src[j + 1].green + src[j - dim].green + src[j + 1 - dim].green +
+            src[j - 1 - dim].green) / 6;
+    dst[j].blue = (src[j].blue + src[j - 1].blue + src[j + 1].blue + src[j - dim].blue + src[j + 1 - dim].blue +
+        src[j - 1 - dim].blue) / 6;
+  }
+
+  for (j = dim + dim - 1; j < dim * dim - 1; j += dim) {
+    dst[j].red = (src[j].red + src[j - 1].red + src[j - dim].red + src[j + dim].red + src[j - dim - 1].red +
+        src[j - 1 + dim].red) / 6;
+    dst[j].green =
+        (src[j].green + src[j - 1].green + src[j - dim].green + src[j + dim].green + src[j - dim - 1].green +
+            src[j - 1 + dim].green) / 6;
+    dst[j].blue = (src[j].blue + src[j - 1].blue + src[j - dim].blue + src[j + dim].blue + src[j - dim - 1].blue +
+        src[j - 1 + dim].blue) / 6;
+  }
+
+  i = i - (dim - 1);
+  for (j = dim; j < i; j += dim) {
+    dst[j].red = (src[j].red + src[j - dim].red + src[j + 1].red + src[j + dim].red + src[j + 1 + dim].red +
+        src[j - dim + 1].red) / 6;
+    dst[j].green =
+        (src[j].green + src[j - dim].green + src[j + 1].green + src[j + dim].green + src[j + 1 + dim].green +
+            src[j - dim + 1].green) / 6;
+    dst[j].blue = (src[j].blue + src[j - dim].blue + src[j + 1].blue + src[j + dim].blue + src[j + 1 + dim].blue +
+        src[j - dim + 1].blue) / 6;
+  }
+
+  k = dim;
+
+  for (i = 1; i < dim - 1; i++) {
+    for (j = 1; j < dim - 1; j++) {
+      k++;
+      dst[k].red = (src[k - 1].red + src[k].red + src[k + 1].red + src[k - dim - 1].red + src[k - dim].red +
+          src[k - dim + 1].red + src[k + dim - 1].red + src[k + dim].red + src[k + dim + 1].red) / 9;
+      dst[k].green = (src[k - 1].green + src[k].green + src[k + 1].green + src[k - dim - 1].green +
+          src[k - dim].green + src[k - dim + 1].green + src[k + dim - 1].green +
+          src[k + dim].green + src[k + dim + 1].green) / 9;
+      dst[k].blue = (src[k - 1].blue + src[k].blue + src[k + 1].blue + src[k - dim - 1].blue +
+          src[k - dim].blue + src[k - dim + 1].blue + src[k + dim - 1].blue +
+          src[k + dim].blue + src[k + dim + 1].blue) / 9;
     }
-
-
-    i = dim * dim - 1;
-    for (j = i - dim + 2; j < i; j++) {
-        dst[j].red = (src[j].red + src[j - 1].red + src[j + 1].red + src[j - dim].red + src[j + 1 - dim].red +
-                      src[j - 1 - dim].red) / 6;
-        dst[j].green =
-                (src[j].green + src[j - 1].green + src[j + 1].green + src[j - dim].green + src[j + 1 - dim].green +
-                 src[j - 1 - dim].green) / 6;
-        dst[j].blue = (src[j].blue + src[j - 1].blue + src[j + 1].blue + src[j - dim].blue + src[j + 1 - dim].blue +
-                       src[j - 1 - dim].blue) / 6;
-    }
-
-    for (j = dim + dim - 1; j < dim * dim - 1; j += dim) {
-        dst[j].red = (src[j].red + src[j - 1].red + src[j - dim].red + src[j + dim].red + src[j - dim - 1].red +
-                      src[j - 1 + dim].red) / 6;
-        dst[j].green =
-                (src[j].green + src[j - 1].green + src[j - dim].green + src[j + dim].green + src[j - dim - 1].green +
-                 src[j - 1 + dim].green) / 6;
-        dst[j].blue = (src[j].blue + src[j - 1].blue + src[j - dim].blue + src[j + dim].blue + src[j - dim - 1].blue +
-                       src[j - 1 + dim].blue) / 6;
-    }
-
-    i = i - (dim - 1);
-    for (j = dim; j < i; j += dim) {
-        dst[j].red = (src[j].red + src[j - dim].red + src[j + 1].red + src[j + dim].red + src[j + 1 + dim].red +
-                      src[j - dim + 1].red) / 6;
-        dst[j].green =
-                (src[j].green + src[j - dim].green + src[j + 1].green + src[j + dim].green + src[j + 1 + dim].green +
-                 src[j - dim + 1].green) / 6;
-        dst[j].blue = (src[j].blue + src[j - dim].blue + src[j + 1].blue + src[j + dim].blue + src[j + 1 + dim].blue +
-                       src[j - dim + 1].blue) / 6;
-    }
-
-    k = dim;
-
-    for (i = 1; i < dim - 1; i++) {
-        for (j = 1; j < dim - 1; j++) {
-            k++;
-            dst[k].red = (src[k - 1].red + src[k].red + src[k + 1].red + src[k - dim - 1].red + src[k - dim].red +
-                          src[k - dim + 1].red + src[k + dim - 1].red + src[k + dim].red + src[k + dim + 1].red) / 9;
-            dst[k].green = (src[k - 1].green + src[k].green + src[k + 1].green + src[k - dim - 1].green +
-                            src[k - dim].green + src[k - dim + 1].green + src[k + dim - 1].green +
-                            src[k + dim].green + src[k + dim + 1].green) / 9;
-            dst[k].blue = (src[k - 1].blue + src[k].blue + src[k + 1].blue + src[k - dim - 1].blue +
-                           src[k - dim].blue + src[k - dim + 1].blue + src[k + dim - 1].blue +
-                           src[k + dim].blue + src[k + dim + 1].blue) / 9;
-        }
-        k += 2;
-    }
+    k += 2;
+  }
 }
-
 
 /*
  * smooth - Your current working version of smooth. 
@@ -272,8 +267,8 @@ void my_smooth(int dim, pixel *src, pixel *dst) {
  */
 char smooth_descr[] = "smooth: Current working version";
 
-void smooth(int dim, pixel *src, pixel *dst) {
-    my_smooth(dim, src, dst);
+void smooth(int dim, pixel* src, pixel* dst) {
+  my_smooth(dim, src, dst);
 }
 
 /*********************************************************************
@@ -285,8 +280,8 @@ void smooth(int dim, pixel *src, pixel *dst) {
  *********************************************************************/
 
 void register_smooth_functions() {
-    add_smooth_function(&naive_smooth, naive_smooth_descr);
-    add_smooth_function(&smooth, smooth_descr);
-    /* ... Register additional test functions here */
+  add_smooth_function(&naive_smooth, naive_smooth_descr);
+  add_smooth_function(&smooth, smooth_descr);
+  /* ... Register additional test functions here */
 }
 
