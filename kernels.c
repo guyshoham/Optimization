@@ -39,13 +39,15 @@ void naive_rotate(int dim, pixel* src, pixel* dst) {
 }
 
 void my_rotate(int dim, pixel* src, pixel* dst) {
-  int cacheSize = 32, j, i, col, row, inCol, inRow;
+  int cacheSize = 32;
+  int i, j, row, col, inCol, inRow;
 
   for (i = 0; i < dim; i = i + cacheSize) {
     for (j = 0; j < dim; j = j + cacheSize) {
       inCol = j + cacheSize;
-      //by switching the two loops we get better spatial locality (more cache hits!)
-      for (col = j; col < inCol; col++) {//goes over a box of 32X32 pixels at a time
+      ///when we switch the two loops, we get better spatial locality, more cache hits.
+      ///we go over a box of 32X32 (cacheSize) pixels at a time
+      for (col = j; col < inCol; col++) {
         inRow = i + cacheSize;
         for (row = i; row < inRow; row++) {
           dst[RIDX(dim - 1 - col, row, dim)] = src[RIDX(row, col, dim)];
@@ -170,92 +172,145 @@ void naive_smooth(int dim, pixel* src, pixel* dst) {
 void my_smooth(int dim, pixel* src, pixel* dst) {
   int i, j, k;
 
-  //handling with the corners
+  ///handling 3 cases:
 
-  //left-up corner
-  dst[0].red = (src[0].red + src[1].red + src[dim].red + src[dim + 1].red) / 4;
-  dst[0].blue = (src[0].blue + src[1].blue + src[dim].blue + src[dim + 1].blue) / 4;
-  dst[0].green = (src[0].green + src[1].green + src[dim].green + src[dim + 1].green) / 4;
+  /// corners (4 successors)
+  /// sides (6 successors)
+  /// rest (9 successors)
 
-  //left-down corner
+  pixel tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9;
+  int index;
+
+  ///corners:
+
+  ///top left
+  tmp1 = src[0];
+  tmp2 = src[1];
+  tmp3 = src[dim];
+  tmp4 = src[dim + 1];
+  index = 0;
+
+  dst[index].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red) / 4;
+  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
+  dst[index].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green) / 4;
+
+  ///bottom left
   i = dim * 2 - 1;
-  dst[dim - 1].red = (src[dim - 2].red + src[dim - 1].red + src[i - 1].red + src[i].red) / 4;
-  dst[dim - 1].blue = (src[dim - 2].blue + src[dim - 1].blue + src[i - 1].blue + src[i].blue) / 4;
-  dst[dim - 1].green = (src[dim - 2].green + src[dim - 1].green + src[i - 1].green + src[i].green) / 4;
 
-  //right-up corner
+  tmp1 = src[dim - 2];
+  tmp2 = src[dim - 1];
+  tmp3 = src[i - 1];
+  tmp4 = src[i];
+  index = dim - 1;
+
+  dst[index].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red) / 4;
+  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
+  dst[index].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green) / 4;
+
+  ///top right
   j = dim * (dim - 1);
   i = dim * (dim - 2);
-  dst[j].red = (src[j].red + src[j + 1].red + src[i].red + src[i + 1].red) / 4;
-  dst[j].blue = (src[j].blue + src[j + 1].blue + src[i].blue + src[i + 1].blue) / 4;
-  dst[j].green = (src[j].green + src[j + 1].green + src[i].green + src[i + 1].green) / 4;
 
-  //right-down corner
+  tmp1 = src[j];
+  tmp2 = src[j + 1];
+  tmp3 = src[i];
+  tmp4 = src[i + 1];
+  index = j;
+
+  dst[index].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red) / 4;
+  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
+  dst[index].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green) / 4;
+
+  ///bottom right
   j = dim * dim - 1;
   i = dim * (dim - 1) - 1;
-  dst[j].red = (src[j - 1].red + src[j].red + src[i - 1].red + src[i].red) / 4;
-  dst[j].blue = (src[j - 1].blue + src[j].blue + src[i - 1].blue + src[i].blue) / 4;
-  dst[j].green = (src[j - 1].green + src[j].green + src[i - 1].green + src[i].green) / 4;
 
+  tmp1 = src[j - 1];
+  tmp2 = src[j];
+  tmp3 = src[i - 1];
+  tmp4 = src[i];
+  index = j;
 
-  //handling with the sides
+  dst[index].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red) / 4;
+  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
+  dst[index].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green) / 4;
 
-
+  ///sides:
   i = dim - 1;
   for (j = 1; j < i; j++) {
-    dst[j].red = (src[j].red + src[j - 1].red + src[j + 1].red + src[j + dim].red + src[j + 1 + dim].red +
-        src[j - 1 + dim].red) / 6;
-    dst[j].green = (src[j].green + src[j - 1].green + src[j + 1].green + src[j + dim].green + src[j + 1 + dim].green
-        + src[j - 1 + dim].green) / 6;
-    dst[j].blue = (src[j].blue + src[j - 1].blue + src[j + 1].blue + src[j + dim].blue + src[j + 1 + dim].blue +
-        src[j - 1 + dim].blue) / 6;
+    tmp1 = src[j];
+    tmp2 = src[j - 1];
+    tmp3 = src[j + 1];
+    tmp4 = src[j + dim];
+    tmp5 = src[j + 1 + dim];
+    tmp6 = src[j - 1 + dim];
+    dst[j].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red + tmp5.red + tmp6.red) / 6;
+    dst[j].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green + tmp5.green + tmp6.green) / 6;
+    dst[j].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue + tmp5.blue + tmp6.blue) / 6;
   }
 
   i = dim * dim - 1;
   for (j = i - dim + 2; j < i; j++) {
-    dst[j].red = (src[j].red + src[j - 1].red + src[j + 1].red + src[j - dim].red + src[j + 1 - dim].red +
-        src[j - 1 - dim].red) / 6;
-    dst[j].green =
-        (src[j].green + src[j - 1].green + src[j + 1].green + src[j - dim].green + src[j + 1 - dim].green +
-            src[j - 1 - dim].green) / 6;
-    dst[j].blue = (src[j].blue + src[j - 1].blue + src[j + 1].blue + src[j - dim].blue + src[j + 1 - dim].blue +
-        src[j - 1 - dim].blue) / 6;
+    tmp1 = src[j];
+    tmp2 = src[j - 1];
+    tmp3 = src[j + 1];
+    tmp4 = src[j - dim];
+    tmp5 = src[j + 1 + dim];
+    tmp6 = src[j - 1 - dim];
+    dst[j].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red + tmp5.red + tmp6.red) / 6;
+    dst[j].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green + tmp5.green + tmp6.green) / 6;
+    dst[j].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue + tmp5.blue + tmp6.blue) / 6;
   }
 
   for (j = dim + dim - 1; j < dim * dim - 1; j += dim) {
-    dst[j].red = (src[j].red + src[j - 1].red + src[j - dim].red + src[j + dim].red + src[j - dim - 1].red +
-        src[j - 1 + dim].red) / 6;
-    dst[j].green =
-        (src[j].green + src[j - 1].green + src[j - dim].green + src[j + dim].green + src[j - dim - 1].green +
-            src[j - 1 + dim].green) / 6;
-    dst[j].blue = (src[j].blue + src[j - 1].blue + src[j - dim].blue + src[j + dim].blue + src[j - dim - 1].blue +
-        src[j - 1 + dim].blue) / 6;
+    tmp1 = src[j];
+    tmp2 = src[j - 1];
+    tmp3 = src[j - dim];
+    tmp4 = src[j + dim];
+    tmp5 = src[j - dim - 1];
+    tmp6 = src[j + dim - 1];
+    dst[j].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red + tmp5.red + tmp6.red) / 6;
+    dst[j].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green + tmp5.green + tmp6.green) / 6;
+    dst[j].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue + tmp5.blue + tmp6.blue) / 6;
   }
 
   i = i - (dim - 1);
   for (j = dim; j < i; j += dim) {
-    dst[j].red = (src[j].red + src[j - dim].red + src[j + 1].red + src[j + dim].red + src[j + 1 + dim].red +
-        src[j - dim + 1].red) / 6;
-    dst[j].green =
-        (src[j].green + src[j - dim].green + src[j + 1].green + src[j + dim].green + src[j + 1 + dim].green +
-            src[j - dim + 1].green) / 6;
-    dst[j].blue = (src[j].blue + src[j - dim].blue + src[j + 1].blue + src[j + dim].blue + src[j + 1 + dim].blue +
-        src[j - dim + 1].blue) / 6;
+    tmp1 = src[j];
+    tmp2 = src[j - dim];
+    tmp3 = src[j + 1];
+    tmp4 = src[j + dim];
+    tmp5 = src[j + dim + 1];
+    tmp6 = src[j - dim + 1];
+    dst[j].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red + tmp5.red + tmp6.red) / 6;
+    dst[j].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green + tmp5.green + tmp6.green) / 6;
+    dst[j].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue + tmp5.blue + tmp6.blue) / 6;
   }
 
+  ///rest:
   k = dim;
-
   for (i = 1; i < dim - 1; i++) {
     for (j = 1; j < dim - 1; j++) {
       k++;
-      dst[k].red = (src[k - 1].red + src[k].red + src[k + 1].red + src[k - dim - 1].red + src[k - dim].red +
-          src[k - dim + 1].red + src[k + dim - 1].red + src[k + dim].red + src[k + dim + 1].red) / 9;
-      dst[k].green = (src[k - 1].green + src[k].green + src[k + 1].green + src[k - dim - 1].green +
-          src[k - dim].green + src[k - dim + 1].green + src[k + dim - 1].green +
-          src[k + dim].green + src[k + dim + 1].green) / 9;
-      dst[k].blue = (src[k - 1].blue + src[k].blue + src[k + 1].blue + src[k - dim - 1].blue +
-          src[k - dim].blue + src[k - dim + 1].blue + src[k + dim - 1].blue +
-          src[k + dim].blue + src[k + dim + 1].blue) / 9;
+      tmp1 = src[k - 1];
+      tmp2 = src[k];
+      tmp3 = src[k + 1];
+      tmp4 = src[k - dim - 1];
+      tmp5 = src[k - dim];
+      tmp6 = src[k - dim + 1];
+      tmp7 = src[k + dim - 1];
+      tmp8 = src[k + dim];
+      tmp9 = src[k + dim + 1];
+
+      dst[k].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red
+          + tmp5.red + tmp6.red + tmp7.red + tmp8.red + tmp9.red) / 9;
+
+      dst[k].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green
+          + tmp5.green + tmp6.green + tmp7.green + tmp8.green + tmp9.green) / 9;
+
+      dst[k].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue
+          + tmp5.blue + tmp6.blue + tmp7.blue + tmp8.blue + tmp9.blue) / 9;
+
     }
     k += 2;
   }
@@ -276,7 +331,7 @@ void smooth(int dim, pixel* src, pixel* dst) {
  *     of the smooth kernel with the driver by calling the
  *     add_smooth_function() for each test function.  When you run the
  *     driver program, it will test and report the performance of each
- *     registered test function.  
+ *     registered test function.
  *********************************************************************/
 
 void register_smooth_functions() {
