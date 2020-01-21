@@ -191,8 +191,8 @@ void my_smooth(int dim, pixel* src, pixel* dst) {
   index = 0;
 
   dst[index].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red) / 4;
-  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
   dst[index].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green) / 4;
+  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
 
   ///bottom left
   i = dim * 2 - 1;
@@ -204,8 +204,8 @@ void my_smooth(int dim, pixel* src, pixel* dst) {
   index = dim - 1;
 
   dst[index].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red) / 4;
-  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
   dst[index].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green) / 4;
+  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
 
   ///top right
   j = dim * (dim - 1);
@@ -218,8 +218,8 @@ void my_smooth(int dim, pixel* src, pixel* dst) {
   index = j;
 
   dst[index].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red) / 4;
-  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
   dst[index].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green) / 4;
+  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
 
   ///bottom right
   j = dim * dim - 1;
@@ -232,8 +232,8 @@ void my_smooth(int dim, pixel* src, pixel* dst) {
   index = j;
 
   dst[index].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red) / 4;
-  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
   dst[index].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green) / 4;
+  dst[index].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue) / 4;
 
   ///sides:
   i = dim - 1;
@@ -288,29 +288,40 @@ void my_smooth(int dim, pixel* src, pixel* dst) {
   }
 
   ///rest:
+
+  ///here, we won't keep the pixels at local variables, because there is too many
   k = dim;
   for (i = 1; i < dim - 1; i++) {
     for (j = 1; j < dim - 1; j++) {
       k++;
-      tmp1 = src[k - 1];
-      tmp2 = src[k];
-      tmp3 = src[k + 1];
-      tmp4 = src[k - dim - 1];
-      tmp5 = src[k - dim];
-      tmp6 = src[k - dim + 1];
-      tmp7 = src[k + dim - 1];
-      tmp8 = src[k + dim];
-      tmp9 = src[k + dim + 1];
+      dst[k].red = (src[k - 1].red
+          + src[k].red
+          + src[k + 1].red
+          + src[k - dim - 1].red
+          + src[k - dim].red
+          + src[k - dim + 1].red
+          + src[k + dim - 1].red
+          + src[k + dim].red
+          + src[k + dim + 1].red) / 9;
 
-      dst[k].red = (tmp1.red + tmp2.red + tmp3.red + tmp4.red
-          + tmp5.red + tmp6.red + tmp7.red + tmp8.red + tmp9.red) / 9;
+      dst[k].green = (src[k - 1].green
+          + src[k].green
+          + src[k + 1].green
+          + src[k - dim - 1].green
+          + src[k - dim].green
+          + src[k - dim + 1].green
+          + src[k + dim - 1].green
+          + src[k + dim].green
+          + src[k + dim + 1].green) / 9;
 
-      dst[k].green = (tmp1.green + tmp2.green + tmp3.green + tmp4.green
-          + tmp5.green + tmp6.green + tmp7.green + tmp8.green + tmp9.green) / 9;
-
-      dst[k].blue = (tmp1.blue + tmp2.blue + tmp3.blue + tmp4.blue
-          + tmp5.blue + tmp6.blue + tmp7.blue + tmp8.blue + tmp9.blue) / 9;
-
+      dst[k].blue = (src[k - 1].blue
+          + src[k].blue
+          + src[k + 1].blue
+          + src[k - dim - 1].blue
+          + src[k - dim].blue + src[k - dim + 1].blue
+          + src[k + dim - 1].blue
+          + src[k + dim].blue
+          + src[k + dim + 1].blue) / 9;
     }
     k += 2;
   }
